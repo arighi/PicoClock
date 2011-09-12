@@ -1,0 +1,27 @@
+= PicoClock =
+
+Super minmalist & lightweight clock widget for Android.
+
+This application has been designed to be lightweight and power efficient (for
+example it doesn't wake up the phone when the screen is off).
+
+There is no option, no configuration, just a plain text frame that shows the
+current date and time.
+
+== How to build the application in debug-mode ==
+
+These are the steps to build the application in debug-mode and test it on any
+Android device.
+
+ - download the latest Android SDK (http://developer.android.com/sdk/index.html)
+
+ - build the application (be sure to replace the path below):
+   $ ant -Dsdk.dir=/path/to/android/sdk/root/dir debug
+
+NOTE: instead of always passing the path of the Android SDK from the command
+line, you can also store the path into the file local.properties:
+
+   $ echo sdk.dir=/path/to/android/sdk/root/dir > local.properties
+
+ - install the application to the device
+   $ adb install bin/PicoClock-debug.apk
