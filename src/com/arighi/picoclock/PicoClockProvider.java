@@ -4,6 +4,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -19,7 +22,7 @@ public class PicoClockProvider extends AppWidgetProvider {
 
     private static final String LOG_TAG = "PicoClock";
 
-    private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd E HH:mm:ss");
+    private static final DateFormat df = new SimpleDateFormat("E MMM HH:mm:ss z yyyy");
 
     public static String CLOCK_WIDGET_UPDATE = "com.arighi.picoclock.widget.CLOCK_WIDGET_UPDATE";
 
@@ -87,11 +90,42 @@ public class PicoClockProvider extends AppWidgetProvider {
         refreshWidget(context, appWidgetManager, appWidgetIds);
     }
 
+    private static String readFile(String filename) {
+        File file = new File(filename);
+        StringBuilder text = new StringBuilder();
+        BufferedReader buf = null;
+
+        try {
+            buf = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = buf.readLine()) != null) {
+                text.append(line);
+            }
+            buf.close();
+        } catch (java.io.IOException e) {
+            Log.e(LOG_TAG, "failed to read /proc/uptime");
+        }
+
+        return text.toString();
+    }
+
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-        String currentTime = df.format(new Date());
+
+        String kernel = System.getProperty("os.name") + " " +
+                        System.getProperty("os.version") + " " +
+                        System.getProperty("os.arch");
+        String uptime = "uptime: " + readFile("/proc/uptime");
+        String loadavg = "loadavg: " + readFile("/proc/loadavg");
+        String battery = "battery: " + readFile("/sys/class/power_supply/battery/capacity") + "%";
+        String currentTime = "date: " + df.format(new Date());
 
         RemoteViews updateViews = new RemoteViews(context.getPackageName(), R.layout.widget);
-        updateViews.setTextViewText(R.id.widget_label, currentTime);
+        updateViews.setTextViewText(R.id.widget_label,
+                                    kernel + "\n" +
+                                    uptime + "\n" +
+                                    loadavg + "\n" +
+                                    battery + "\n" +
+                                    currentTime + "\n");
         appWidgetManager.updateAppWidget(appWidgetId, updateViews);
     }
 }
