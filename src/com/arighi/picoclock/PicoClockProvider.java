@@ -22,7 +22,7 @@ public class PicoClockProvider extends AppWidgetProvider {
 
     private static final String LOG_TAG = "PicoClock";
 
-    private static final DateFormat df = new SimpleDateFormat("E MMM HH:mm:ss z yyyy");
+    private static final DateFormat df = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
 
     public static String CLOCK_WIDGET_UPDATE = "com.arighi.picoclock.widget.CLOCK_WIDGET_UPDATE";
 
