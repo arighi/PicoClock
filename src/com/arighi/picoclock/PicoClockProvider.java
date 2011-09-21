@@ -128,14 +128,25 @@ public class PicoClockProvider extends AppWidgetProvider {
         memUsage.update();
         cpuUsage.update();
 
-        int cpu_freq = Integer.parseInt(readFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")) / 1000;
+        int cpu_freq;
+        try {
+            cpu_freq = Integer.parseInt(readFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")) / 1000;
+        } catch (Exception e) {
+            cpu_freq = 0;
+        }
 
         int nrOfProcessors = runtime.availableProcessors();
         String kernel = System.getProperty("os.name") + " " +
                         System.getProperty("os.version") + " " +
                         System.getProperty("os.arch");
-        String cpu = "cpu: " + runtime.availableProcessors() + " " + "freq: " + cpu_freq + "MHz " +
-                     "usage: " + Integer.toString(cpuUsage.usage) + "%";
+        String cpu;
+        if (cpu_freq > 0) {
+            cpu = "cpu: " + runtime.availableProcessors() + " " + "freq: " + cpu_freq + "MHz " +
+                  "usage: " + Integer.toString(cpuUsage.usage) + "%";
+        } else {
+            cpu = "cpu: " + runtime.availableProcessors() + " " +
+                  "usage: " + Integer.toString(cpuUsage.usage) + "%";
+        }
         String mem = "mem: " + Integer.toString(memUsage.free / 1024) + "MiB" +
                      " / " + Integer.toString(memUsage.total / 1024) + "MiB " +
                      "free: " + String.format("%.0f", memUsage.free * 100.0f / memUsage.total) + "%";
