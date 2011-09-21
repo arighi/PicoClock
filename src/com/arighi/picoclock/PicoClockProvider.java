@@ -1,5 +1,6 @@
 package com.arighi.picoclock.widget;
 
+import java.lang.Runtime;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -7,6 +8,7 @@ import java.util.Date;
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.IOException;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -23,6 +25,9 @@ public class PicoClockProvider extends AppWidgetProvider {
     private static final String LOG_TAG = "PicoClock";
 
     private static final DateFormat df = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
+
+    private static CpuUsage cpuUsage = null;
+    private static MemoryUsage memUsage = null;
 
     public static String CLOCK_WIDGET_UPDATE = "com.arighi.picoclock.widget.CLOCK_WIDGET_UPDATE";
 
@@ -52,6 +57,12 @@ public class PicoClockProvider extends AppWidgetProvider {
 
     public void onDisabled(Context context) {
         super.onDisabled(context);
+        try {
+            cpuUsage.close();
+            memUsage.close();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "failed to close the cpuUsage or memUsage object: " + e);
+        }
         timerOff(context);
         Log.d(LOG_TAG, "stop service");
         context.stopService(new Intent(context, PicoClockService.class));
@@ -59,6 +70,8 @@ public class PicoClockProvider extends AppWidgetProvider {
 
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        cpuUsage = new CpuUsage();
+        memUsage = new MemoryUsage();
         timerOn(context);
         Log.d(LOG_TAG, "start service");
         context.startService(new Intent(context, PicoClockService.class));
@@ -110,20 +123,30 @@ public class PicoClockProvider extends AppWidgetProvider {
     }
 
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+        Runtime runtime = Runtime.getRuntime();
 
+        memUsage.update();
+        cpuUsage.update();
+
+        int cpu_freq = Integer.parseInt(readFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")) / 1000;
+
+        int nrOfProcessors = runtime.availableProcessors();
         String kernel = System.getProperty("os.name") + " " +
                         System.getProperty("os.version") + " " +
                         System.getProperty("os.arch");
-        String uptime = "uptime: " + readFile("/proc/uptime");
-        String loadavg = "loadavg: " + readFile("/proc/loadavg");
+        String cpu = "cpu: " + runtime.availableProcessors() + " " + "freq: " + cpu_freq + "MHz " +
+                     "usage: " + Integer.toString(cpuUsage.usage) + "%";
+        String mem = "mem: " + Integer.toString(memUsage.free / 1024) + "MiB" +
+                     " / " + Integer.toString(memUsage.total / 1024) + "MiB " +
+                     "free: " + String.format("%.0f", memUsage.free * 100.0f / memUsage.total) + "%";
         String battery = "battery: " + readFile("/sys/class/power_supply/battery/capacity") + "%";
         String currentTime = "date: " + df.format(new Date());
 
         RemoteViews updateViews = new RemoteViews(context.getPackageName(), R.layout.widget);
         updateViews.setTextViewText(R.id.widget_label,
                                     kernel + "\n" +
-                                    uptime + "\n" +
-                                    loadavg + "\n" +
+                                    cpu + "\n" +
+                                    mem + "\n" +
                                     battery + "\n" +
                                     currentTime + "\n");
         appWidgetManager.updateAppWidget(appWidgetId, updateViews);
