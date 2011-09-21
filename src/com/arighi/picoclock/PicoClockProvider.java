@@ -103,7 +103,7 @@ public class PicoClockProvider extends AppWidgetProvider {
             }
             buf.close();
         } catch (java.io.IOException e) {
-            Log.e(LOG_TAG, "failed to read /proc/uptime");
+            Log.e(LOG_TAG, "failed to read " + filename);
         }
 
         return text.toString();
