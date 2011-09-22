@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class MemoryUsage {
     private static final String LOG_TAG = "MemoryUsage";
-    private RandomAccessFile memFile;
+    private RandomAccessFile memFile = null;
 
     public static int free = 0;
     public static int total = 0;
@@ -25,6 +25,7 @@ public class MemoryUsage {
 
     public void close() throws IOException {
         memFile.close();
+        memFile = null;
     }
 
     public void update() {
@@ -43,8 +44,8 @@ public class MemoryUsage {
                     break;
                 }
             }
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "Ops: " + e);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "ERROR: " + e);
         }
     }
 }

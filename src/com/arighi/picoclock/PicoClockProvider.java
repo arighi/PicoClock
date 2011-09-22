@@ -125,8 +125,16 @@ public class PicoClockProvider extends AppWidgetProvider {
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Runtime runtime = Runtime.getRuntime();
 
-        memUsage.update();
-        cpuUsage.update();
+	try {
+	        cpuUsage.update();
+	} catch (Exception e) {
+		Log.e(LOG_TAG, "failed to update cpu statistics: " + e);
+	}
+	try {
+	        memUsage.update();
+	} catch (Exception e) {
+		Log.e(LOG_TAG, "failed to update memory statistics: " + e);
+	}
 
         int cpu_freq;
         try {
@@ -147,9 +155,14 @@ public class PicoClockProvider extends AppWidgetProvider {
             cpu = "cpu: " + runtime.availableProcessors() + " " +
                   "usage: " + Integer.toString(cpuUsage.usage) + "%";
         }
-        String mem = "mem: " + Integer.toString(memUsage.free / 1024) + "MiB" +
-                     " / " + Integer.toString(memUsage.total / 1024) + "MiB " +
-                     "free: " + String.format("%.0f", memUsage.free * 100.0f / memUsage.total) + "%";
+        String mem;
+        if (memUsage.total > 0) {
+            mem = "mem: " + Integer.toString(memUsage.free / 1024) + "MiB" +
+                  " / " + Integer.toString(memUsage.total / 1024) + "MiB " +
+                  "free: " + String.format("%.0f", memUsage.free * 100.0f / memUsage.total) + "%";
+        } else {
+            mem = "mem: evaluating...";
+        }
         String battery = "battery: " + readFile("/sys/class/power_supply/battery/capacity") + "%";
         String currentTime = "date: " + df.format(new Date());
 
