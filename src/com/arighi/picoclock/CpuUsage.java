@@ -15,7 +15,7 @@ public class CpuUsage {
 
     public static int usage = 0;
 
-    public CpuUsage() {
+    private void open() {
         try {
             statFile = new RandomAccessFile("/proc/stat", "r");
         }
@@ -30,8 +30,11 @@ public class CpuUsage {
     }
 
     public void update() {
-        if (statFile == null)
-            return;
+        if (statFile == null) {
+            open();
+            if (statFile == null)
+                return;
+        }
         try {
             statFile.seek(0);
             String cpuLine = statFile.readLine();

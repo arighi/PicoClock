@@ -13,7 +13,7 @@ public class MemoryUsage {
     public static int free = 0;
     public static int total = 0;
 
-    public MemoryUsage() {
+    private void open() {
         try {
             memFile = new RandomAccessFile("/proc/meminfo", "r");
         }
@@ -29,8 +29,11 @@ public class MemoryUsage {
     }
 
     public void update() {
-        if (memFile == null)
-            return;
+        if (memFile == null) {
+            open();
+            if (memFile == null)
+                return;
+        }
         try {
             memFile.seek(0);
             String line;
