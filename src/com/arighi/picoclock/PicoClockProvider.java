@@ -60,7 +60,7 @@ public class PicoClockProvider extends AppWidgetProvider {
         try {
             cpuUsage.close();
             memUsage.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.e(LOG_TAG, "failed to close the cpuUsage or memUsage object: " + e);
         }
         timerOff(context);
