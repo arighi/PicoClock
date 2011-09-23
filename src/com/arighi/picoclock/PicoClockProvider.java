@@ -138,7 +138,8 @@ public class PicoClockProvider extends AppWidgetProvider {
 
         int cpu_freq;
         try {
-            cpu_freq = Integer.parseInt(readFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")) / 1000;
+            FileContent file = new FileContent("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
+            cpu_freq = Integer.parseInt(file.content()) / 1000;
         } catch (Exception e) {
             cpu_freq = 0;
         }
@@ -147,6 +148,26 @@ public class PicoClockProvider extends AppWidgetProvider {
         String kernel = System.getProperty("os.name") + " " +
                         System.getProperty("os.version") + " " +
                         System.getProperty("os.arch");
+
+        String battery = "";
+        try {
+            FileContent technology = new FileContent("/sys/class/power_supply/battery/technology");
+            FileContent health = new FileContent("/sys/class/power_supply/battery/health");
+            FileContent status = new FileContent("/sys/class/power_supply/battery/status");
+            FileContent capacity = new FileContent("/sys/class/power_supply/battery/capacity");
+            FileContent temperature = new FileContent("/sys/class/power_supply/battery/temp");
+
+            battery = "battery:";
+            battery += " " + technology.content();
+            battery += " " + health.content();
+            battery += " " + status.content();
+            battery += " " + capacity.content() + "%";
+            if (temperature.content() != null)
+                battery += " " + Integer.parseInt(temperature.content()) / 10 + "°C";
+        } catch (Exception e) {
+		Log.e(LOG_TAG, "failed to read battery statistics: " + e);
+        }
+
         String cpu;
         if (cpu_freq > 0) {
             cpu = "cpu: " + runtime.availableProcessors() + " " + "freq: " + cpu_freq + "MHz " +
@@ -163,7 +184,6 @@ public class PicoClockProvider extends AppWidgetProvider {
         } else {
             mem = "mem: evaluating...";
         }
-        String battery = "battery: " + readFile("/sys/class/power_supply/battery/capacity") + "%";
         String currentTime = "date: " + df.format(new Date());
 
         RemoteViews updateViews = new RemoteViews(context.getPackageName(), R.layout.widget);

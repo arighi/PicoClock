@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
 import android.util.Log;
 
 public class MemoryUsage {
-    private static final String LOG_TAG = "MemoryUsage";
+    private static final String LOG_TAG = "PicoClock";
     private RandomAccessFile memFile = null;
 
     public static int free = 0;

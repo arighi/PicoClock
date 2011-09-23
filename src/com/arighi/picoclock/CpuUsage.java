@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
 import android.util.Log;
 
 public class CpuUsage {
-    private static final String LOG_TAG = "CpuUsage";
+    private static final String LOG_TAG = "PicoClock";
 
     private RandomAccessFile statFile;
     private long lastTotal;
